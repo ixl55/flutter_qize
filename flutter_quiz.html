@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flutter & Mobile Development — Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --card: #111827;
+    --card2: #1a2235;
+    --accent: #00d4aa;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --correct: #10b981;
+    --wrong: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: #1e2d45;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── PRINT ENHANCEMENTS (DARK THEME & COMPACT) ── */
+  @media print {
+    :root {
+      --bg: #0a0e1a;
+      --card: #111827;
+      --card2: #1a2235;
+      --accent: #00d4aa;
+      --accent2: #3b82f6;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --border: #1e2d45;
+      --correct: #10b981;
+      --wrong: #ef4444;
+    }
+    
+    body { 
+      background: #0a0e1a !important; 
+      color: #e2e8f0 !important;
+      font-size: 9.5pt !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .top-bar, .progress-bar-wrap, .filter-bar, #start-screen, 
+    .quiz-nav, .score-actions, .start-actions, button, 
+    .btn-primary, .btn-secondary { display: none !important; }
+
+    .page-wrap { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    
+    .chapter-heading {
+      color: var(--accent) !important;
+      border-bottom: 2px solid var(--accent) !important;
+      background: #1a2235 !important;
+      padding: 6px 10px !important;
+      margin-top: 15pt !important;
+      margin-bottom: 10pt !important;
+      font-weight: 800 !important;
+      font-size: 1.05rem !important;
+      display: block !important;
+      border-radius: 4px;
+    }
+
+    .q-card {
+      break-inside: avoid;
+      border: 1px solid var(--border) !important;
+      border-left: 4px solid var(--accent) !important;
+      background: #111827 !important;
+      padding: 12px 15px !important;
+      margin-bottom: 8pt !important;
+      color: #e2e8f0 !important;
+    }
+
+    .q-header { margin-bottom: 8px !important; }
+    .q-text { font-size: 10pt !important; font-weight: 700 !important; }
+
+    .q-num {
+      color: var(--accent) !important;
+      border: 1px solid var(--accent) !important;
+      background: #0d2a24 !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+    }
+
+    .options { 
+      display: grid !important; 
+      grid-template-columns: 1fr 1fr !important;
+      gap: 6px !important; 
+    }
+
+    .option {
+      background: #1a2235 !important;
+      border: 1px solid var(--border) !important;
+      color: #e2e8f0 !important;
+      padding: 6px 10px !important;
+      font-size: 9pt !important;
+    }
+
+    .option.correct-show {
+      background: #052e1b !important;
+      border-color: #10b981 !important;
+      color: #6ee7b7 !important;
+    }
+
+    .option .opt-letter {
+      background: #162030 !important;
+      border-color: var(--accent2) !important;
+      color: var(--accent2) !important;
+      width: 20px !important; height: 20px !important;
+      font-size: 0.65rem !important;
+    }
+
+    .option.correct-show .opt-letter {
+      background: #052e1b !important;
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+    }
+
+    @page { size: A4; margin: 10mm 15mm; }
+  }
+
+  /* ── LAYOUT ──────────────────────────────── */
+  .page-wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  /* ── TOP BAR ─────────────────────────────── */
+  .top-bar {
+    background: linear-gradient(135deg, #0d1b2a 0%, #0a1628 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .top-bar .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--accent); letter-spacing: -0.5px;
+  }
+  .top-bar .subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .top-bar .spacer { flex: 1; }
+  .print-btn {
+    background: transparent; border: 1.5px solid var(--accent);
+    color: var(--accent); border-radius: 8px;
+    padding: 8px 16px; font-size: 0.8rem; font-family: 'Space Mono', monospace;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .print-btn:hover { background: var(--accent); color: #000; }
+
+  /* ── START SCREEN ────────────────────────── */
+  #start-screen {
+    text-align: center; padding: 60px 20px 40px;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800; line-height: 1.1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .hero-sub { color: var(--muted); font-size: 1rem; margin-bottom: 40px; }
+  .chapter-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-bottom: 40px; text-align: left;
+  }
+  .ch-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius); padding: 18px; cursor: pointer;
+    transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .ch-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .ch-card.selected { border-color: var(--accent); background: #0d2a24; }
+  .ch-card .ch-num {
+    font-family: 'Space Mono', monospace; font-size: 0.7rem;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .ch-card .ch-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+  .ch-card .ch-count { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .ch-card .check {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); display: none;
+    align-items: center; justify-content: center;
+    font-size: 0.65rem; color: #000;
+  }
+  .ch-card.selected .check { display: flex; }
+
+  .start-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent); color: #000; border: none;
+    border-radius: 10px; padding: 14px 36px;
+    font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary:hover { background: #00bfa0; transform: scale(1.03); }
+  .btn-secondary {
+    background: transparent; color: var(--accent2);
+    border: 1.5px solid var(--accent2); border-radius: 10px;
+    padding: 14px 28px; font-family: 'Sora', sans-serif;
+    font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--accent2); color: #fff; }
+
+  /* ── QUIZ VIEW ───────────────────────────── */
+  .quiz-view { display: none; }
+
+  .progress-bar-wrap {
+    height: 4px; background: var(--border); border-radius: 99px;
+    margin-bottom: 28px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 99px; transition: width 0.4s ease;
+  }
+
+  .filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .filter-btn {
+    background: var(--card); border: 1.5px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 7px 16px;
+    font-size: 0.78rem; font-family: 'Space Mono', monospace;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: #0d2a24; }
+
+  .q-counter {
+    font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    color: var(--muted); margin-bottom: 20px;
+  }
+  .q-counter span { color: var(--accent); font-weight: 700; }
+
+  /* Single question card (quiz mode) */
+  .q-card {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 14px; padding: 28px; margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .q-card.answered { border-color: var(--border); }
+
+  .q-header { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 20px; }
+  .q-num {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    color: var(--accent); background: #0d2a24;
+    border: 1px solid var(--accent); border-radius: 6px;
+    padding: 4px 10px; white-space: nowrap; margin-top: 2px;
+  }
+  .q-text { font-size: 0.97rem; font-weight: 600; line-height: 1.55; }
+
+  .options { display: grid; gap: 10px; }
+  .option {
+    background: var(--card2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 13px 16px;
+    font-size: 0.88rem; cursor: pointer;
+    display: flex; align-items: center; gap: 12px;
+    transition: all 0.18s; position: relative;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent2); background: #162030; }
+  .option .opt-letter {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem;
+    color: var(--accent2); background: #162030;
+    border: 1px solid var(--accent2); border-radius: 5px;
+    width: 24px; height: 24px; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+  }
+  .option.correct-show {
+    background: #052e1b; border-color: var(--correct); color: #6ee7b7;
+  }
+  .option.correct-show .opt-letter { background: #052e1b; border-color: var(--correct); color: var(--correct); }
+  .option.wrong-show {
+    background: #2d0a0a; border-color: var(--wrong); color: #fca5a5;
+  }
+  .option.wrong-show .opt-letter { background: #2d0a0a; border-color: var(--wrong); color: var(--wrong); }
+  .option.disabled { cursor: default; }
+
+  .q-feedback {
+    margin-top: 14px; padding: 10px 14px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600; display: none;
+  }
+  .q-feedback.show { display: block; }
+  .q-feedback.correct { background: #052e1b; color: var(--correct); }
+  .q-feedback.wrong { background: #2d0a0a; color: var(--wrong); }
+
+  /* Navigation */
+  .quiz-nav {
+    display: flex; gap: 10px; justify-content: space-between;
+    align-items: center; margin-top: 30px;
+  }
+  .nav-btn {
+    background: var(--card2); border: 1.5px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: 10px 22px;
+    font-family: 'Sora', sans-serif; font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .nav-btn:hover:not(:disabled) { border-color: var(--accent2); color: var(--accent2); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .nav-btn.finish { background: var(--accent); border-color: var(--accent); color: #000; }
+  .nav-btn.finish:hover { background: #00bfa0; }
+
+  /* ── ALL QUESTIONS (review/print) ────────── */
+  .chapter-block { margin-bottom: 40px; }
+  .chapter-heading {
+    font-family: 'Space Mono', monospace; font-size: 0.85rem;
+    color: var(--accent); letter-spacing: 1px;
+    border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    margin-bottom: 20px; text-transform: uppercase;
+  }
+
+  /* ── SCORE VIEW ──────────────────────────── */
+  .score-view { display: none; text-align: center; }
+  .score-big {
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin: 24px 0 8px;
+  }
+  .score-label { color: var(--muted); font-size: 1rem; margin-bottom: 32px; }
+  .score-stats {
+    display: flex; gap: 16px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 32px;
+  }
+  .stat-pill {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 99px; padding: 10px 22px;
+    font-size: 0.85rem; font-weight: 600;
+  }
+  .stat-pill.c { border-color: var(--correct); color: var(--correct); }
+  .stat-pill.w { border-color: var(--wrong); color: var(--wrong); }
+  .stat-pill.s { border-color: var(--accent3); color: var(--accent3); }
+  .score-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+
+  /* Review section in score */
+  .review-section { text-align: left; }
+  .review-title {
+    font-size: 1rem; font-weight: 700; color: var(--accent);
+    margin-bottom: 16px; font-family: 'Space Mono', monospace;
+  }
+
+  /* ── SCROLLBAR ───────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="logo">◈ Flutter Quiz</div>
+    <div class="subtitle">Mobile App Development — Practice Questions</div>
+  </div>
+  <div class="spacer"></div>
+
+</div>
+
+<div class="page-wrap">
+
+  <!-- ── START SCREEN ─────────────────── -->
+  <div id="start-screen">
+    <div class="hero-title">Practice Quiz</div>
+    <div class="hero-sub">Select chapters and test your Flutter & Mobile Development knowledge</div>
+
+    <div class="chapter-grid" id="chapter-grid"></div>
+
+    <div class="start-actions">
+      <button class="btn-secondary" onclick="selectAll()">Select All</button>
+      <button class="btn-primary" onclick="startQuiz()">Start Quiz →</button>
+      <button class="btn-secondary" onclick="showAll()">Browse All Q's</button>
+    </div>
+  </div>
+
+  <!-- ── QUIZ VIEW ─────────────────────── -->
+  <div class="quiz-view" id="quiz-view">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="q-counter">Question <span id="q-current">1</span> of <span id="q-total">0</span></div>
+    <div id="quiz-card-area"></div>
+    <div class="quiz-nav">
+      <button class="nav-btn" id="btn-prev" onclick="navigate(-1)">← Prev</button>
+      <button class="nav-btn" id="btn-next" onclick="navigate(1)">Next →</button>
+      <button class="nav-btn finish" id="btn-finish" onclick="finishQuiz()">Finish Quiz</button>
+    </div>
+  </div>
+
+  <!-- ── ALL QUESTIONS (browse) ─────────── -->
+  <div id="all-view" style="display:none">
+    <div class="filter-bar" id="filter-bar"></div>
+    <div id="all-questions-area"></div>
+    <div style="margin-top:24px">
+      <button class="btn-secondary" onclick="backToStart()">← Back</button>
+    </div>
+  </div>
+
+  <!-- ── SCORE VIEW ────────────────────── -->
+  <div class="score-view" id="score-view">
+    <div style="font-size:0.85rem; color:var(--muted); margin-top:20px">Quiz Complete!</div>
+    <div class="score-big" id="score-pct"></div>
+    <div class="score-label" id="score-label"></div>
+    <div class="score-stats">
+      <div class="stat-pill c" id="stat-correct"></div>
+      <div class="stat-pill w" id="stat-wrong"></div>
+      <div class="stat-pill s" id="stat-skip"></div>
+    </div>
+    <div class="score-actions">
+      <button class="btn-secondary" onclick="retryWrong()">Retry Wrong Answers</button>
+      <button class="btn-primary" onclick="backToStart()">New Quiz</button>
+    </div>
+    <div class="review-section">
+      <div class="review-title">📋 Full Review</div>
+      <div id="review-area"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────────
+const chapters = [
+  {
+    id: 'ch01', label: 'Chapter 01', title: 'Intro to Mobile Apps',
+    questions: [
+      { q: 'What is the primary definition of a mobile application?', opts: ['Software that runs only on desktop computers','Application software designed to run on mobile devices such as smartphones or tablets','A programming language used for mobile development','A web browser extension'], ans: 1 },
+      { q: 'Which type of mobile app is built specifically for one operating system?', opts: ['Web App','Hybrid App','Native App','Progressive App'], ans: 2 },
+      { q: 'Which technology is used to develop Web Apps?', opts: ['Java and Kotlin','Swift and Objective-C','HTML5, CSS, and JavaScript','Dart and Flutter'], ans: 2 },
+      { q: 'What is a major disadvantage of Native Apps?', opts: ['They cannot access device hardware','Code cannot be reused across platforms, driving up costs','They must run inside a web browser','They require internet connection at all times'], ans: 1 },
+      { q: 'Hybrid apps are best described as:', opts: ['Apps that work only on iOS','Combinations of both native and web apps wrapped within a native app shell','Apps that exclusively use Swift programming','Browser-based apps with no offline capability'], ans: 1 },
+      { q: 'Flutter is developed by which company?', opts: ['Apple','Microsoft','Google','Meta'], ans: 2 },
+      { q: 'Which programming language does Flutter use?', opts: ['JavaScript','Python','Dart','Swift'], ans: 2 },
+      { q: 'What Flutter feature allows developers to see changes in code immediately without restarting the app?', opts: ['Cold Start','Hot Reload','Live Refresh','Fast Boot'], ans: 1 },
+      { q: 'Which of the following is an advantage of Web Apps over Native Apps?', opts: ['Better performance and speed','Direct access to all device hardware','Users don\'t need to download updates; maintenance is simpler','Works offline without any internet'], ans: 2 },
+      { q: 'Flutter offers two main sets of design widgets. Which are they?', opts: ['Bootstrap and Foundation','Material Design and Cupertino widgets','Android and iOS widgets','Native and Hybrid widgets'], ans: 1 },
+    ]
+  },
+  {
+    id: 'ch02', label: 'Chapter 02', title: 'Flutter Architecture',
+    questions: [
+      { q: 'How many main layers does Flutter\'s architecture consist of?', opts: ['Two','Three','Four','Five'], ans: 1 },
+      { q: 'Which layer of Flutter architecture serves as a bridge between the Flutter engine and the native platform?', opts: ['Framework','Engine','Embedder','Rendering Layer'], ans: 2 },
+      { q: 'What C++ based 2D graphics library does the Flutter Engine use for rendering?', opts: ['OpenGL','Vulkan','Skia','DirectX'], ans: 2 },
+      { q: 'The Flutter Framework layer is written in which language?', opts: ['C++','Java','Dart','Kotlin'], ans: 2 },
+      { q: 'Which library connects the Flutter Framework to the Engine?', opts: ['dart:core','dart:ui','dart:io','dart:async'], ans: 1 },
+      { q: 'Which framework sub-layer is responsible for converting widgets into pixels shown on screen?', opts: ['Foundation Layer','Rendering Layer','Widgets Layer','Material Layer'], ans: 1 },
+      { q: 'The Material design layer in Flutter follows guidelines from which company?', opts: ['Apple','Google','Microsoft','Samsung'], ans: 1 },
+      { q: 'The Cupertino design layer follows which design specification?', opts: ['Google Material Design','Fluent Design','Apple\'s Human Interface Guidelines (HIG)','Bootstrap Design System'], ans: 2 },
+      { q: 'Which component within the Flutter Engine provides an execution environment for Dart code?', opts: ['Skia','Dart VM','dart:ui','Embedder API'], ans: 1 },
+      { q: 'What does the Foundation Layer of the Flutter Framework contain?', opts: ['Basic classes including animations, painting, and gestures','Native platform bridge code','The Skia graphics rendering library','The Dart Virtual Machine'], ans: 0 },
+    ]
+  },
+  {
+    id: 'ch03', label: 'Chapter 03', title: 'Widgets & Structure',
+    questions: [
+      { q: 'In Flutter, everything is a:', opts: ['Class','Widget','Function','Module'], ans: 1 },
+      { q: 'Which widget is the root (top-level) widget of a Flutter application?', opts: ['Scaffold','MaterialApp','MyApp','AppBar'], ans: 2 },
+      { q: 'What does MaterialApp set in a Flutter application?', opts: ['Only the app\'s body content','The overall theme and navigation following Google\'s Material Design specification','Only the AppBar properties','The database connection'], ans: 1 },
+      { q: 'What is the purpose of the Scaffold widget?', opts: ['It renders text on screen','It provides a layout structure (foundation) for the app screen on which child widgets display themselves','It manages database operations','It handles network requests'], ans: 1 },
+      { q: 'Which Scaffold property is used to define the main content area of the screen?', opts: ['body','appBar','floatingActionButton','drawer'], ans: 0 },
+      { q: 'Which property of Scaffold specifies the header (top bar) of the screen?', opts: ['body','appBar','topBar','header'], ans: 1 },
+      { q: 'How are Flutter widgets categorized?', opts: ['Static and Dynamic','Visible (Output and Input) and Invisible (Layout and Control)','Native and Web','Material and Cupertino'], ans: 1 },
+      { q: 'The virtue of widget composability in Flutter enables:', opts: ['Only simple UI creation','Building user interfaces of any complexity','Faster database access','Direct hardware communication'], ans: 1 },
+      { q: 'In the Flutter Widget Tree shown in class, which widget appears directly below MaterialApp?', opts: ['AppBar','Center','Scaffold','Text'], ans: 2 },
+      { q: 'Which of the following is NOT a direct property/child of Scaffold in a typical Flutter app?', opts: ['appBar','floatingActionButton','body','MaterialApp'], ans: 3 },
+    ]
+  },
+  {
+    id: 'ch04', label: 'Chapter 04', title: 'UI Widgets',
+    questions: [
+      { q: 'Which widget is used to display text on the screen in Flutter?', opts: ['Text','Label','Paragraph','Display'], ans: 0 },
+      { q: 'Which Flutter button type has no shadow and shows only text?', opts: ['TextButton','ElevatedButton','OutlinedButton','FloatingActionButton'], ans: 0 },
+      { q: 'Which button type is circular and floats above the app content?', opts: ['TextButton','OutlinedButton','FloatingActionButton','IconButton'], ans: 2 },
+      { q: 'What does the Card widget create in Flutter?', opts: ['A text input field','A surface with shadows and rounded corners','A navigation bar','A fullscreen overlay'], ans: 1 },
+      { q: 'Which method loads an image from a URL in Flutter?', opts: ['Image.file()','Image.network()','Image.url()','Image.web()'], ans: 1 },
+      { q: 'Which widget displays a circular image, often used for profile photos?', opts: ['RoundedImage','CircleAvatar','CircleImage','ProfileImage'], ans: 1 },
+      { q: 'What is the purpose of the TextField widget?', opts: ['To display read-only text','To collect keyboard input from users for forms, messages, search, etc.','To show a text button','To format text with styles'], ans: 1 },
+      { q: 'Which attribute of TextField adds a border, hintText, and labelText?', opts: ['style','controller','decoration (InputDecoration)','validator'], ans: 2 },
+      { q: 'Which button displays only an icon and requires the icon: parameter?', opts: ['FloatingActionButton','TextButton','IconButton','ElevatedButton'], ans: 2 },
+      { q: 'Which of the following shows how to load a local asset image?', opts: ['Image.network(\'assets/img.png\')','Image.asset(\'assets/android.png\')','Image.file(\'assets/android.png\')','Image.local(\'android.png\')'], ans: 1 },
+    ]
+  },
+  {
+    id: 'ch05', label: 'Chapter 05', title: 'Usability & Design',
+    questions: [
+      { q: 'Usability is described as:', opts: ['A performance optimization tool','A quality attribute that assesses the ease of use of user interfaces','A programming paradigm','A type of mobile application'], ans: 1 },
+      { q: 'Which usability goal refers to the number of steps it takes a user to complete a task?', opts: ['Effectiveness','Efficiency','Safety','Learnability'], ans: 1 },
+      { q: 'Which usability goal involves protecting users from dangerous conditions and providing means of error recovery?', opts: ['Efficiency','Memorability','Safety','Learnability'], ans: 2 },
+      { q: 'A Splash Screen (Launch Screen) is designed to:', opts: ['Allow users to make purchases','Attract users from the start and allow background processes to run while loading','Display full app content immediately','Request user permissions'], ans: 1 },
+      { q: 'According to mobile design principles, a Tab Bar must have how many tabs?', opts: ['1 to 3','2 to 5','3 to 6','5 to 10'], ans: 2 },
+      { q: 'What is "Affordance" in mobile interface design?', opts: ['The cost of building an app','A property/feature of an object that provides cues about how it can be used or interacted with','The app\'s performance speed','The screen brightness setting'], ans: 1 },
+      { q: 'Which type of feedback involves vibration in mobile apps?', opts: ['Visual','Audible','Haptic','Digital'], ans: 2 },
+      { q: 'When should scrolling be used in mobile app design?', opts: ['On every screen for consistency','Never — it should always be avoided','Only in lists; should be avoided elsewhere','Only on the home screen'], ans: 2 },
+      { q: 'Which usability goal measures how easy it is to remember using a system after it has been learned?', opts: ['Learnability','Memorability','Effectiveness','Safety'], ans: 1 },
+      { q: 'Mobile apps should be designed to use less power. An example of this is:', opts: ['Displaying more animations','Prefetching data while the screen is off','Increasing screen brightness','Sending more push notifications'], ans: 1 },
+    ]
+  },
+  {
+    id: 'ch06', label: 'Lab Ch 01', title: 'Flutter Setup',
+    questions: [
+      { q: 'Where should the Flutter SDK be extracted on a Windows machine?', opts: ['C:\\Program Files\\Flutter','C:\\src\\flutter','C:\\Users\\flutter_sdk','Anywhere on the Desktop'], ans: 1 },
+      { q: 'Which specific path must be added to the system PATH variable?', opts: ['C:\\src\\flutter\\lib','C:\\src\\flutter\\sdk','C:\\src\\flutter\\bin','C:\\src\\flutter\\tools'], ans: 2 },
+      { q: 'After adding Flutter to PATH, what command verifies the installation?', opts: ['flutter run','flutter check','flutter --version','flutter install'], ans: 2 },
+      { q: 'Where is Android\'s SDK Manager accessed from in Android Studio after a fresh install?', opts: ['File → Settings → SDK','Welcome screen → More Actions → SDK Manager','Tools → Flutter → SDK Manager','Build → Configure SDK'], ans: 1 },
+      { q: 'Which of the following is a Windows-only SDK Tool that must be installed?', opts: ['Android Emulator','Platform-Tools','Command-line Tools','Google USB Driver'], ans: 3 },
+      { q: 'What is the purpose of Step 6 (Enable Virtualisation)?', opts: ['To allow Flutter to compile Dart code','To install Android Studio plugins','To allow the Android Emulator to run efficiently using hardware acceleration','To configure the system PATH'], ans: 2 },
+      { q: 'What command is used to accept Android licenses in the terminal?', opts: ['flutter accept --licenses','flutter doctor --android-licenses','android accept-licenses','flutter license --accept'], ans: 1 },
+      { q: 'Which system image architectures can be selected when creating an Android Virtual Device?', opts: ['x32 or ARM32','x86_64 or ARM64','MIPS or PowerPC','x86 or ARM32'], ans: 1 },
+      { q: 'Why should the Flutter SDK NOT be placed in a path that contains spaces?', opts: ['It makes the folder invisible to the OS','Android Studio cannot find it','Paths with spaces can cause permission and command-line tool issues','Flutter only works with 8-character paths'], ans: 2 },
+      { q: 'What is the purpose of running flutter doctor?', opts: ['To create a new Flutter project','To launch the Android emulator','To check the setup and report any missing dependencies or configuration issues','To update the Flutter SDK to the latest version'], ans: 2 },
+    ]
+  },
+  {
+    id: 'ch07', label: 'Lab Ch 02', title: 'Dart Basics',
+    questions: [
+      { q: 'What is the entry point of every Dart program?', opts: ['start()','run()','main()','init()'], ans: 2 },
+      { q: 'Which syntax correctly inserts a variable\'s value inside a Dart string?', opts: ['{variable}','#variable','$variable','@variable'], ans: 2 },
+      { q: 'What is the correct data type for storing the value true or false?', opts: ['int','String','bool','double'], ans: 2 },
+      { q: 'Which Dart construct is used to iterate over all items in a List?', opts: ['while loop','do-while loop','for-in loop','switch statement'], ans: 2 },
+      { q: 'What does a constructor do in a Dart class?', opts: ['Destroys an object when it is no longer needed','Initialises the fields of a class when an object is created','Prints the class name to the console','Declares the data type of each variable'], ans: 1 },
+      { q: 'Which of the following correctly declares a list of strings in Dart?', opts: ['Array<String> names = [\'Ali\'];','List<String> names = [\'Ali\', \'Sara\'];','string[] names = {\'Ali\'};','var names = String[]{\'Ali\'};'], ans: 1 },
+      { q: 'What is an object in Dart?', opts: ['A keyword used to declare variables','An instance of a class','A type of loop','A built-in function in Dart'], ans: 1 },
+      { q: 'In Flutter, widgets such as Text and Button are technically:', opts: ['Variables','Functions','Classes','Lists'], ans: 2 },
+      { q: 'What will the following code print?\nint mark = 45; if (mark >= 50) { print(\'Passed\'); } else { print(\'Failed\'); }', opts: ['Passed','Failed','Nothing','Compile error'], ans: 1 },
+      { q: 'What is the primary purpose of functions in Dart / Flutter?', opts: ['To declare new data types','To import external libraries','To group reusable logic, callable from buttons and events','To define the app\'s visual layout'], ans: 2 },
+    ]
+  },
+  {
+    id: 'ch08', label: 'Lab Ch 03', title: 'Flutter Project Setup',
+    questions: [
+      { q: 'How do you start creating a new Flutter project in VS Code?', opts: ['File → New File → Flutter','View → Command Palette → Flutter: New Project','Terminal → flutter new project','Edit → New → Flutter Application'], ans: 1 },
+      { q: 'Which Flutter template option is selected to generate a standard runnable Flutter application?', opts: ['Module','Application','Plugin','Skeleton'], ans: 1 },
+      { q: 'In which file does the Flutter application\'s main entry point reside?', opts: ['pubspec.yaml','android/app/src/MainActivity.kt','lib/main.dart','test/widget_test.dart'], ans: 2 },
+      { q: 'What does runApp() do in Flutter?', opts: ['Compiles the Dart code to native','Takes the root widget and starts the Flutter rendering engine','Opens a terminal window','Connects the app to the Internet'], ans: 1 },
+      { q: 'Which widget provides the standard screen structure with AppBar, Body, and FloatingActionButton?', opts: ['Container','MaterialApp','Scaffold','Column'], ans: 2 },
+      { q: 'How do you open the integrated terminal in VS Code?', opts: ['View → Output','Terminal → New Terminal','Run → Open Console','Help → Terminal'], ans: 1 },
+      { q: 'What type of widget is MyApp in the generated Flutter app?', opts: ['StatefulWidget','StatelessWidget','InheritedWidget','RenderWidget'], ans: 1 },
+      { q: 'What is the purpose of pubspec.yaml?', opts: ['Stores the Dart source code','Contains Android build settings','Declares project dependencies and assets','Configures the Android emulator'], ans: 2 },
+      { q: 'How do you run a Flutter app without a debugger in VS Code?', opts: ['Run → Start Debugging','Run → Run Without Debugging','Terminal → flutter debug','View → Run App'], ans: 1 },
+      { q: 'What is the top-level widget in the default generated app that provides Material Design theming?', opts: ['Scaffold','AppBar','ThemeData','MaterialApp'], ans: 3 },
+    ]
+  },
+  {
+    id: 'ch09', label: 'Lab Ch 04', title: 'Navigation',
+    questions: [
+      { q: 'In Flutter, what are screens and pages called?', opts: ['Views','Scenes','Routes','Pages'], ans: 2 },
+      { q: 'Which method is used to navigate to a new screen in Flutter?', opts: ['Navigator.open()','Navigator.push()','Navigator.go()','Navigator.move()'], ans: 1 },
+      { q: 'Which method returns to the previous screen?', opts: ['Navigator.back()','Navigator.remove()','Navigator.pop()','Navigator.close()'], ans: 2 },
+      { q: 'What does MaterialPageRoute wrap in its builder parameter?', opts: ['A String URL','The destination widget class','A list of routes','The current context only'], ans: 1 },
+      { q: 'How do you pass a value to a second screen in Flutter?', opts: ['Using a global variable','By including it as a named parameter in the destination class constructor','Through SharedPreferences only','By writing it to a file first'], ans: 1 },
+      { q: 'Which class is used to capture user input from a TextField and pass it to the next screen?', opts: ['InputDecoration','TextEditingController','FormController','StringController'], ans: 1 },
+      { q: 'When using TextEditingController, what widget type must the first screen extend?', opts: ['StatelessWidget','InheritedWidget','StatefulWidget','RenderWidget'], ans: 2 },
+      { q: 'How is the text value of a TextEditingController accessed?', opts: ['controller.value','controller.input','controller.text','controller.getString()'], ans: 2 },
+      { q: 'What keyword in a constructor parameter declaration makes it mandatory to pass?', opts: ['final','const','required','mandatory'], ans: 2 },
+      { q: 'Which of the following correctly passes two different-type parameters to SecondPage?', opts: ['SecondPage([\'Ali\', 30]);','SecondPage(params: {\'Ali\', 30});','SecondPage(MyName: \'Ali\', MyAge: 30);','SecondPage.set(\'Ali\', 30);'], ans: 2 },
+    ]
+  },
+  {
+    id: 'ch10', label: 'Lab Ch 05', title: 'State & Gestures',
+    questions: [
+      { q: 'Which widget is used to detect gestures (like tap, swipe) on non-button widgets?', opts: ['TouchHandler','GestureDetector','TapListener','InputDetector'], ans: 1 },
+      { q: 'A widget that never changes its appearance after it is built is called a:', opts: ['Dynamic Widget','Stateless Widget','Stateful Widget','Mutable Widget'], ans: 1 },
+      { q: 'Which of the following is an example of a Stateful widget?', opts: ['Text','Icon','Checkbox','IconButton'], ans: 2 },
+      { q: 'What is the purpose of the setState() method in a Stateful widget?', opts: ['To create the widget for the first time','To trigger a rebuild of the widget when the internal state changes','To destroy the widget','To initialise the widget\'s state'], ans: 1 },
+      { q: 'Which lifecycle method is called only once, when the widget is inserted into the widget tree for the first time?', opts: ['createState()','initState()','build()','dispose()'], ans: 1 },
+      { q: 'Which lifecycle method is called when a widget is permanently removed from the widget tree?', opts: ['initState()','setState()','build()','dispose()'], ans: 3 },
+      { q: 'Implementing a custom Stateful widget requires creating how many classes?', opts: ['One class only','Two classes: a StatefulWidget subclass and a State subclass','Three classes','Four classes'], ans: 1 },
+      { q: 'The build() method in a Stateful widget is called:', opts: ['Only once during the app lifetime','After initState(), didUpdateWidget(), or when setState() is called','Only when the app starts','Only when dispose() is triggered'], ans: 1 },
+      { q: 'Which lifecycle method is triggered when the widget is rebuilt with updated properties from its parent?', opts: ['initState()','setState()','didUpdateWidget()','createState()'], ans: 2 },
+      { q: 'What is the correct order of lifecycle events when a Stateful widget is first created?', opts: ['build() → initState() → createState() → Constructor','Constructor → createState() → initState() → build()','initState() → Constructor → build() → createState()','createState() → Constructor → build() → initState()'], ans: 1 },
+    ]
+  },
+];
+
+// ─────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────
+let quizQuestions = [];   // flat array of {q, opts, ans, chLabel}
+let userAnswers = [];     // index or null
+let currentIdx = 0;
+
+// ─────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────
+function init() {
+  const grid = document.getElementById('chapter-grid');
+  chapters.forEach(ch => {
+    const card = document.createElement('div');
+    card.className = 'ch-card';
+    card.dataset.id = ch.id;
+    card.innerHTML = `
+      <div class="ch-num">${ch.label}</div>
+      <div class="ch-title">${ch.title}</div>
+      <div class="ch-count">${ch.questions.length} questions</div>
+      <div class="check">✓</div>
+    `;
+    card.addEventListener('click', () => card.classList.toggle('selected'));
+    grid.appendChild(card);
+  });
+}
+
+function selectAll() {
+  document.querySelectorAll('.ch-card').forEach(c => c.classList.add('selected'));
+}
+
+function getSelectedChapters() {
+  const ids = [...document.querySelectorAll('.ch-card.selected')].map(c => c.dataset.id);
+  return chapters.filter(ch => ids.includes(ch.id));
+}
+
+// ─────────────────────────────────────────────────────
+//  START QUIZ
+// ─────────────────────────────────────────────────────
+function startQuiz() {
+  const selected = getSelectedChapters();
+  if (!selected.length) { alert('Please select at least one chapter.'); return; }
+  quizQuestions = [];
+  selected.forEach(ch => ch.questions.forEach(q => quizQuestions.push({ ...q, chLabel: ch.label })));
+  // shuffle
+  for (let i = quizQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [quizQuestions[i], quizQuestions[j]] = [quizQuestions[j], quizQuestions[i]];
+  }
+  userAnswers = new Array(quizQuestions.length).fill(null);
+  currentIdx = 0;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-view').style.display = 'block';
+  document.getElementById('q-total').textContent = quizQuestions.length;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizQuestions[currentIdx];
+  const answered = userAnswers[currentIdx];
+  document.getElementById('q-current').textContent = currentIdx + 1;
+  document.getElementById('progress-fill').style.width =
+    ((currentIdx + 1) / quizQuestions.length * 100) + '%';
+
+  const area = document.getElementById('quiz-card-area');
+  const letters = ['A','B','C','D'];
+  const optsHtml = q.opts.map((o, i) => {
+    let cls = 'option';
+    if (answered !== null) {
+      cls += ' disabled';
+      if (i === q.ans) cls += ' correct-show';
+      else if (i === answered) cls += ' wrong-show';
+    }
+    return `<div class="${cls}" onclick="answer(${i})">
+      <div class="opt-letter">${letters[i]}</div>
+      <div>${o}</div>
+    </div>`;
+  }).join('');
+
+  let feedback = '';
+  if (answered !== null) {
+    const ok = answered === q.ans;
+    feedback = `<div class="q-feedback show ${ok ? 'correct' : 'wrong'}">
+      ${ok ? '✓ Correct!' : `✗ Wrong — The correct answer is: ${q.opts[q.ans]}`}
+    </div>`;
+  }
+
+  area.innerHTML = `
+    <div class="q-card ${answered !== null ? 'answered' : ''}">
+      <div class="q-header">
+        <div class="q-num">${q.chLabel} · Q${currentIdx + 1}</div>
+        <div class="q-text">${q.q}</div>
+      </div>
+      <div class="options">${optsHtml}</div>
+      ${feedback}
+    </div>
+  `;
+
+  document.getElementById('btn-prev').disabled = currentIdx === 0;
+  document.getElementById('btn-next').disabled = currentIdx === quizQuestions.length - 1;
+  document.getElementById('btn-finish').style.display =
+    currentIdx === quizQuestions.length - 1 ? 'inline-block' : 'none';
+}
+
+function answer(idx) {
+  if (userAnswers[currentIdx] !== null) return;
+  userAnswers[currentIdx] = idx;
+  renderQuestion();
+}
+
+function navigate(dir) {
+  currentIdx = Math.max(0, Math.min(quizQuestions.length - 1, currentIdx + dir));
+  renderQuestion();
+}
+
+// ─────────────────────────────────────────────────────
+//  FINISH
+// ─────────────────────────────────────────────────────
+function finishQuiz() {
+  const correct = userAnswers.filter((a, i) => a === quizQuestions[i].ans).length;
+  const wrong = userAnswers.filter((a, i) => a !== null && a !== quizQuestions[i].ans).length;
+  const skipped = userAnswers.filter(a => a === null).length;
+  const pct = Math.round(correct / quizQuestions.length * 100);
+
+  document.getElementById('quiz-view').style.display = 'none';
+  const sv = document.getElementById('score-view');
+  sv.style.display = 'block';
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('score-label').textContent =
+    pct >= 80 ? '🎉 Excellent work!' : pct >= 60 ? '👍 Good effort!' : '📚 Keep practicing!';
+  document.getElementById('stat-correct').textContent = `✓ ${correct} Correct`;
+  document.getElementById('stat-wrong').textContent = `✗ ${wrong} Wrong`;
+  document.getElementById('stat-skip').textContent = `— ${skipped} Skipped`;
+
+  // review
+  const letters = ['A','B','C','D'];
+  let html = '';
+  quizQuestions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    const ok = ua === q.ans;
+    const skp = ua === null;
+    html += `<div class="q-card" style="margin-bottom:14px">
+      <div class="q-header">
+        <div class="q-num" style="color:${ok ? 'var(--correct)' : skp ? 'var(--accent3)' : 'var(--wrong)'}">${q.chLabel} · Q${i+1}</div>
+        <div class="q-text">${q.q}</div>
+      </div>
+      <div class="options">
+        ${q.opts.map((o, j) => {
+          let cls = 'option disabled';
+          if (j === q.ans) cls += ' correct-show';
+          else if (j === ua) cls += ' wrong-show';
+          return `<div class="${cls}"><div class="opt-letter">${letters[j]}</div><div>${o}</div></div>`;
+        }).join('')}
+      </div>
+      ${!ok ? `<div class="q-feedback show ${skp ? 'wrong' : 'wrong'}">
+        ${skp ? '— Skipped' : `✗ You chose: ${q.opts[ua]}`}
+      </div>` : `<div class="q-feedback show correct">✓ Correct!</div>`}
+    </div>`;
+  });
+  document.getElementById('review-area').innerHTML = html;
+}
+
+function retryWrong() {
+  const wrong = quizQuestions.filter((q, i) => userAnswers[i] !== q.ans);
+  if (!wrong.length) { alert('No wrong answers to retry!'); return; }
+  quizQuestions = wrong;
+  userAnswers = new Array(wrong.length).fill(null);
+  currentIdx = 0;
+  document.getElementById('score-view').style.display = 'none';
+  document.getElementById('quiz-view').style.display = 'block';
+  document.getElementById('q-total').textContent = quizQuestions.length;
+  renderQuestion();
+}
+
+// ─────────────────────────────────────────────────────
+//  BROWSE ALL
+// ─────────────────────────────────────────────────────
+function showAll() {
+  const selected = getSelectedChapters().length ? getSelectedChapters() : chapters;
+  document.getElementById('start-screen').style.display = 'none';
+  const av = document.getElementById('all-view');
+  av.style.display = 'block';
+
+  // filter buttons
+  const fb = document.getElementById('filter-bar');
+  fb.innerHTML = `<button class="filter-btn active" onclick="filterAll('all', this)">All</button>` +
+    selected.map(ch => `<button class="filter-btn" onclick="filterAll('${ch.id}', this)">${ch.label}</button>`).join('');
+
+  renderAll(selected);
+}
+
+function renderAll(chs) {
+  const letters = ['A','B','C','D'];
+  let html = '';
+  chs.forEach(ch => {
+    html += `<div class="chapter-block" data-ch="${ch.id}">
+      <div class="chapter-heading">◈ ${ch.label} — ${ch.title}</div>
+      ${ch.questions.map((q, qi) => `
+        <div class="q-card">
+          <div class="q-header">
+            <div class="q-num">Q${qi + 1}</div>
+            <div class="q-text">${q.q}</div>
+          </div>
+          <div class="options">
+            ${q.opts.map((o, j) => `
+              <div class="option disabled ${j === q.ans ? 'correct-show' : ''}">
+                <div class="opt-letter">${letters[j]}</div>
+                <div>${o}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  });
+  document.getElementById('all-questions-area').innerHTML = html;
+}
+
+function filterAll(id, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.chapter-block').forEach(b => {
+    b.style.display = (id === 'all' || b.dataset.ch === id) ? 'block' : 'none';
+  });
+}
+
+function backToStart() {
+  document.getElementById('start-screen').style.display = 'block';
+  document.getElementById('quiz-view').style.display = 'none';
+  document.getElementById('all-view').style.display = 'none';
+  document.getElementById('score-view').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>
