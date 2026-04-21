@@ -27,5 +27,7 @@ A modern, interactive Single Page Application (SPA) designed to test and review 
 
 ## 💻 How to Run
   Download `flutter_quiz.html`.
+  
   or 
-  https://ixl55.github.io/flutter_qize/
+  
+  [**➔ Launch CyberExam Dashboard**](https://ixl55.github.io/flutter_qize/)
